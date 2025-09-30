@@ -1,15 +1,24 @@
+import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
 import { ConvexQueryClient } from '@convex-dev/react-query'
 import { QueryClient } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
 import { routerWithQueryClient } from '@tanstack/react-router-with-query'
-import { ConvexProvider } from 'convex/react'
+import { ConvexReactClient } from 'convex/react'
+import { authClient } from '~/lib/auth-client'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
   const CONVEX_URL = (import.meta as any).env.VITE_CONVEX_URL!
+
   if (!CONVEX_URL) {
     console.error('missing envar CONVEX_URL')
   }
+
+  const convex = new ConvexReactClient(CONVEX_URL, {
+    // Optionally pause queries until the user is authenticated
+    expectAuth: true,
+  })
+
   const convexQueryClient = new ConvexQueryClient(CONVEX_URL)
 
   const queryClient: QueryClient = new QueryClient({
@@ -33,7 +42,9 @@ export function getRouter() {
       defaultErrorComponent: (err) => <p>{err.error.stack}</p>,
       defaultNotFoundComponent: () => <p>not found</p>,
       Wrap: ({ children }) => (
-        <ConvexProvider client={convexQueryClient.convexClient}>{children}</ConvexProvider>
+        <ConvexBetterAuthProvider client={convex} authClient={authClient}>
+          {children}
+        </ConvexBetterAuthProvider>
       ),
     }),
     queryClient,
