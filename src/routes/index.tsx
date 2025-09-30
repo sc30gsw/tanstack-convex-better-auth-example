@@ -1,8 +1,8 @@
 import { convexQuery } from '@convex-dev/react-query'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { api } from 'convex/_generated/api'
 import { useMutation } from 'convex/react'
-import { api } from '../../convex/_generated/api'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -11,9 +11,9 @@ export const Route = createFileRoute('/')({
 function Home() {
   const {
     data: { viewer, numbers },
-  } = useSuspenseQuery(convexQuery(api.myFunctions.listNumbers, { count: 10 }))
+  } = useSuspenseQuery(convexQuery(api.counts.listNumbers, { count: 10 }))
 
-  const addNumber = useMutation(api.myFunctions.addNumber)
+  const addNumber = useMutation(api.counts.addNumber)
 
   return (
     <main className="flex flex-col gap-16 p-8">
@@ -54,7 +54,7 @@ function Home() {
         </p>
         <p>
           Open{' '}
-          <Link to="/anotherPage" className="text-blue-600 underline hover:no-underline">
+          <Link to="/auth/login" className="text-blue-600 underline hover:no-underline">
             another page
           </Link>{' '}
           to send an action.
