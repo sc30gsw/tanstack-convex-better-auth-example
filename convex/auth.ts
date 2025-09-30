@@ -2,7 +2,7 @@ import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { components } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
-import { query } from "./_generated/server";
+import { action, query } from "./_generated/server";
 import { betterAuth } from "better-auth";
 
 const siteUrl = process.env.SITE_URL!;
@@ -48,7 +48,7 @@ export const createAuth = (
       // セッションを24時間に設定
       sessionMaxAge: 24 * 60 * 60,
      // Cookie に Secure 属性を付与（HTTPS必須）
-      useSecureCookies: true,
+      useSecureCookies: process.env.NODE_ENV === "production",
 
       // クロスオリジンで Cookie を送信するには SameSite=none が必要
       // 開発環境では lax、本番環境では none に設定
