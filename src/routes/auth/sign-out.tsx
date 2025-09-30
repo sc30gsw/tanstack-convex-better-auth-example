@@ -6,7 +6,12 @@ import { authClient } from '~/lib/auth-client'
  * アクセスすると自動的にログアウトしてログインページへリダイレクト
  */
 export const Route = createFileRoute('/auth/sign-out')({
-  beforeLoad: async () => {
+  beforeLoad: async ({ preload }) => {
+    // プリロード時は実行しない
+    if (preload) {
+      return
+    }
+
     // セッションをクリア
     await authClient.signOut()
 
