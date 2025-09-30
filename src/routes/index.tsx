@@ -1,8 +1,7 @@
-import { convexQuery } from '@convex-dev/react-query'
+import { convexQuery, useConvexMutation } from '@convex-dev/react-query'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { api } from 'convex/_generated/api'
-import { useMutation } from 'convex/react'
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -13,7 +12,7 @@ function Home() {
     data: { viewer, numbers },
   } = useSuspenseQuery(convexQuery(api.counts.listNumbers, { count: 10 }))
 
-  const addNumber = useMutation(api.counts.addNumber)
+  const addNumber = useConvexMutation(api.counts.addNumber)
 
   return (
     <main className="flex flex-col gap-16 p-8">
@@ -28,8 +27,13 @@ function Home() {
           <button
             type="button"
             className="rounded-md border-2 bg-dark px-4 py-2 text-light text-sm dark:bg-light dark:text-dark"
-            onClick={() => {
-              void addNumber({ value: Math.floor(Math.random() * 10) })
+            onClick={async () => {
+              const number = Math.floor(Math.random() * 10)
+              try {
+                await addNumber({ value: number })
+              } catch (err) {
+                alert(err)
+              }
             }}
           >
             Add a random number
@@ -54,7 +58,7 @@ function Home() {
         </p>
         <p>
           Open{' '}
-          <Link to="/auth/login" className="text-blue-600 underline hover:no-underline">
+          <Link to="/auth/sign-in" className="text-blue-600 underline hover:no-underline">
             another page
           </Link>{' '}
           to send an action.
