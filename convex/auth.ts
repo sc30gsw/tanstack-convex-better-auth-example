@@ -41,6 +41,20 @@ export const createAuth = (
       // The Convex plugin is required for Convex compatibility
       convex(),
     ],
+    // ? getSessionでsessionを取得できないため
+    // クロスドメインでのCookie送信を許可
+    advanced: {
+      // セッションを24時間に設定
+      sessionMaxAge: 24 * 60 * 60,
+     // Cookie に Secure 属性を付与（HTTPS必須）
+      useSecureCookies: true,
+
+      // クロスオリジンで Cookie を送信するには SameSite=none が必要
+      // 開発環境では lax、本番環境では none に設定
+      defaultCookieAttributes: {
+        sameSite: process.env.NODE_ENV === "development" ? "lax" : "none",
+      },
+    },
   });
 };
 
