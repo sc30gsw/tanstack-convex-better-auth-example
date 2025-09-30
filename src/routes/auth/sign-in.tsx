@@ -1,7 +1,7 @@
 import { useForm } from '@tanstack/react-form'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { AlertCircle, Github, Loader2, Lock, Mail } from 'lucide-react'
-import { useState } from 'react'
+import { useTransition } from 'react'
 import { authClient } from '~/lib/auth-client'
 
 export const Route = createFileRoute('/auth/sign-in')({
@@ -10,54 +10,53 @@ export const Route = createFileRoute('/auth/sign-in')({
 
 function SignIn() {
   const navigate = useNavigate()
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   const form = useForm({
     defaultValues: {
       email: '',
       password: '',
+      error: '',
     },
-    onSubmit: async ({ value }) => {
-      setError('')
-      setIsLoading(true)
+    onSubmit: ({ value, formApi }) => {
+      formApi.setFieldValue('error', '')
 
-      try {
-        await authClient.signIn.email(
-          {
-            email: value.email,
-            password: value.password,
-          },
-          {
-            onSuccess: () => {
-              navigate({ to: '/' })
+      startTransition(async () => {
+        try {
+          await authClient.signIn.email(
+            {
+              email: value.email,
+              password: value.password,
             },
-            onError: (ctx) => {
-              setError(ctx.error.message || 'ログインに失敗しました')
+            {
+              onSuccess: () => {
+                navigate({ to: '/' })
+              },
+              onError: (ctx) => {
+                formApi.setFieldValue('error', ctx.error.message || 'ログインに失敗しました')
+              },
             },
-          },
-        )
-      } catch (_err) {
-        setError('予期しないエラーが発生しました')
-      } finally {
-        setIsLoading(false)
-      }
+          )
+        } catch (_err) {
+          formApi.setFieldValue('error', '予期しないエラーが発生しました')
+        }
+      })
     },
   })
 
-  const handleGitHubSignIn = async () => {
-    setError('')
-    setIsLoading(true)
+  const handleGitHubSignIn = () => {
+    form.setFieldValue('error', '')
 
-    try {
-      await authClient.signIn.social({
-        provider: 'github',
-        callbackURL: '/',
-      })
-    } catch (_err) {
-      setError('GitHub認証に失敗しました')
-      setIsLoading(false)
-    }
+    startTransition(async () => {
+      try {
+        await authClient.signIn.social({
+          provider: 'github',
+          callbackURL: '/',
+        })
+      } catch (_err) {
+        form.setFieldValue('error', 'GitHub認証に失敗しました')
+      }
+    })
   }
 
   return (
@@ -71,10 +70,10 @@ function SignIn() {
         </div>
 
         <div className="rounded-lg bg-white p-8 shadow-lg dark:bg-slate-800">
-          {error && (
+          {form.state.values.error && (
             <div className="mb-4 flex items-center gap-2 rounded-md bg-red-50 p-3 text-red-800 text-sm dark:bg-red-900/20 dark:text-red-400">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span>{error}</span>
+              <span>{form.state.values.error}</span>
             </div>
           )}
 
@@ -117,7 +116,7 @@ function SignIn() {
                       required
                       className="w-full rounded-md border border-slate-300 py-2 pr-3 pl-10 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                       placeholder="your@email.com"
-                      disabled={isLoading}
+                      disabled={isPending}
                     />
                   </div>
                   {field.state.meta.errors.length > 0 && (
@@ -161,7 +160,7 @@ function SignIn() {
                       minLength={8}
                       className="w-full rounded-md border border-slate-300 py-2 pr-3 pl-10 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                       placeholder="••••••••"
-                      disabled={isLoading}
+                      disabled={isPending}
                     />
                   </div>
                   {field.state.meta.errors.length > 0 && (
@@ -175,10 +174,10 @@ function SignIn() {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isPending}
               className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-slate-800"
             >
-              {isLoading ? (
+              {isPending ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
                   ログイン中...
@@ -198,7 +197,7 @@ function SignIn() {
           <button
             type="button"
             onClick={handleGitHubSignIn}
-            disabled={isLoading}
+            disabled={isPending}
             className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:focus:ring-offset-slate-800 dark:hover:bg-slate-600"
           >
             <Github className="h-5 w-5" />
