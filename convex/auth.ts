@@ -23,8 +23,9 @@ export const createAuth = (
     },
     trustedOrigins: [
       'http://localhost:3000',
+      process.env.CONVEX_SITE_URL!,
     ],
-    baseURL: siteUrl,
+    baseURL: process.env.CONVEX_SITE_URL!,
     database: authComponent.adapter(ctx),
     socialProviders: {
       github: {

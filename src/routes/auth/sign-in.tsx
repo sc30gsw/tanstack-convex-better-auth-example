@@ -51,7 +51,7 @@ function SignIn() {
       try {
         await authClient.signIn.social({
           provider: 'github',
-          callbackURL: '/',
+          callbackURL: 'http://localhost:3000/',
         })
       } catch (_err) {
         form.setFieldValue('error', 'GitHub認証に失敗しました')
