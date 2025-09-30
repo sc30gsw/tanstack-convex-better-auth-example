@@ -23,6 +23,12 @@ export const createAuth = (
     },
     baseURL: siteUrl,
     database: authComponent.adapter(ctx),
+    socialProviders: {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID!,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      }
+    },
     // Configure simple, non-verified email/password to get started
     emailAndPassword: {
       enabled: true,
