@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { Loader } from '~/components/loader'
 import { authClient } from '~/lib/auth-client'
 
 const PUBLIC_ROUTES = ['/auth/sign-in', '/auth/sign-up']
@@ -25,7 +26,7 @@ export function Authorized({ children }: Record<'children', React.ReactNode>) {
   }, [session, isPending, navigate])
 
   if (isPending) {
-    return <div>Loading...</div>
+    return <Loader />
   }
 
   return children
