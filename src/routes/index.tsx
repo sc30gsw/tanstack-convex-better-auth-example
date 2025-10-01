@@ -1,25 +1,47 @@
-import { convexQuery } from '@convex-dev/react-query'
+import { convexQuery, useConvexMutation } from '@convex-dev/react-query'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useMutation } from 'convex/react'
-import { api } from '../../convex/_generated/api'
+import { api } from 'convex/_generated/api'
+import { Authorized } from '~/components/authorized'
+import { authClient } from '~/lib/auth-client'
 
 export const Route = createFileRoute('/')({
-  component: Home,
+  component: RootComponent,
 })
+
+function RootComponent() {
+  return (
+    <Authorized>
+      <Home />
+    </Authorized>
+  )
+}
 
 function Home() {
   const {
-    data: { viewer, numbers },
-  } = useSuspenseQuery(convexQuery(api.myFunctions.listNumbers, { count: 10 }))
+    data: { numbers },
+  } = useSuspenseQuery(convexQuery(api.counts.listNumbers, { count: 10 }))
 
-  const addNumber = useMutation(api.myFunctions.addNumber)
+  const navigate = Route.useNavigate()
+
+  const addNumber = useConvexMutation(api.counts.addNumber)
+
+  const { data: session } = authClient.useSession()
 
   return (
     <main className="flex flex-col gap-16 p-8">
       <h1 className="text-center font-bold text-4xl">Convex + Tanstack Start</h1>
       <div className="mx-auto flex max-w-lg flex-col gap-8">
-        <p>Welcome {viewer ?? 'Anonymous'}!</p>
+        <div className="flex items-center justify-around rounded-md bg-slate-200 p-4 dark:bg-slate-800">
+          <p>Welcome {session?.user.name}!</p>
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/auth/sign-out' })}
+            className="cursor-pointer text-blue-600 underline hover:no-underline"
+          >
+            Sign out
+          </button>
+        </div>
         <p>
           Click the button below and open this page in another window - this data is persisted in
           the Convex cloud database!
@@ -27,9 +49,14 @@ function Home() {
         <p>
           <button
             type="button"
-            className="rounded-md border-2 bg-dark px-4 py-2 text-light text-sm dark:bg-light dark:text-dark"
-            onClick={() => {
-              void addNumber({ value: Math.floor(Math.random() * 10) })
+            className="cursor-pointer rounded-md border-2 bg-dark px-4 py-2 text-light text-sm dark:bg-light dark:text-dark"
+            onClick={async () => {
+              const number = Math.floor(Math.random() * 10)
+              try {
+                await addNumber({ value: number })
+              } catch (err) {
+                alert(err)
+              }
             }}
           >
             Add a random number
@@ -54,7 +81,7 @@ function Home() {
         </p>
         <p>
           Open{' '}
-          <Link to="/anotherPage" className="text-blue-600 underline hover:no-underline">
+          <Link to="/auth/sign-in" className="text-blue-600 underline hover:no-underline">
             another page
           </Link>{' '}
           to send an action.
